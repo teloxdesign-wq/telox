@@ -4,14 +4,19 @@ import { cn } from '@/lib/utils';
 export function Logo3D({ 
   className, 
   size = 120, 
-  reflect = false 
+  reflect = false,
+  gap = 8,
 }: { 
   className?: string; 
   size?: number; 
-  reflect?: boolean; 
+  reflect?: boolean;
+  gap?: number;
 }) {
   const s = `${size}px`;
   const d = `${size / 2}px`;
+  // half-step from center to cube center: half cube size + half gap
+  const step = size / 2 + gap / 2;
+  const hs = `${step}px`;
 
   const css = `
     .logo-container {
@@ -47,7 +52,7 @@ export function Logo3D({
   `;
 
   return (
-    <div className={cn("logo-container flex items-center justify-center", className)} style={{ '--s': s, '--d': d } as any}>
+    <div className={cn("logo-container flex items-center justify-center", className)} style={{ '--s': s, '--d': d, '--hs': hs } as any}>
       <style>{css}</style>
       
       {/* Main Logo */}
@@ -56,9 +61,9 @@ export function Logo3D({
         animate={{ rotateY: 360 }}
         transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
       >
-        <Cube x="calc(var(--s) * -0.5)" y="calc(var(--s) * -0.5)" />
-        <Cube x="calc(var(--s) * 0.5)" y="calc(var(--s) * -0.5)" />
-        <Cube x="0px" y="calc(var(--s) * 0.5)" />
+        <Cube x={`-${step}px`} y={`-${step}px`} />
+        <Cube x={`${step}px`}  y={`-${step}px`} />
+        <Cube x="0px"          y={`${step}px`}  />
       </motion.div>
 
       {/* Reflection */}
@@ -81,9 +86,9 @@ export function Logo3D({
               animate={{ rotateY: 360 }}
               transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
             >
-              <Cube x="calc(var(--s) * -0.5)" y="calc(var(--s) * -0.5)" />
-              <Cube x="calc(var(--s) * 0.5)" y="calc(var(--s) * -0.5)" />
-              <Cube x="0px" y="calc(var(--s) * 0.5)" />
+              <Cube x={`-${step}px`} y={`-${step}px`} />
+              <Cube x={`${step}px`}  y={`-${step}px`} />
+              <Cube x="0px"          y={`${step}px`}  />
             </motion.div>
           </div>
         </div>
