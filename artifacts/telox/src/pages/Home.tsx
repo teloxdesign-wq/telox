@@ -6,21 +6,19 @@ export function Home({ navOpen, setNavOpen }: { navOpen: boolean; setNavOpen: (v
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
-  const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
+  const smoothX = useSpring(mouseX, { damping: 60, stiffness: 300 });
+  const smoothY = useSpring(mouseY, { damping: 60, stiffness: 300 });
 
-  const rotateX = useTransform(smoothY, [-1, 1], [15, -15]);
-  const rotateY = useTransform(smoothX, [-1, 1], [-15, 15]);
+  const rotateX = useTransform(smoothY, [-1, 1], [12, -12]);
+  const rotateY = useTransform(smoothX, [-1, 1], [-12, 12]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 2 - 1;
-      const y = (e.clientY / window.innerHeight) * 2 - 1;
-      mouseX.set(x);
-      mouseY.set(y);
+      mouseX.set((e.clientX / window.innerWidth) * 2 - 1);
+      mouseY.set((e.clientY / window.innerHeight) * 2 - 1);
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [mouseX, mouseY]);
 
   return (
@@ -31,21 +29,22 @@ export function Home({ navOpen, setNavOpen }: { navOpen: boolean; setNavOpen: (v
       exit={{ opacity: 0, transition: { duration: 0.5 } }}
       onClick={() => navOpen && setNavOpen(false)}
     >
+      {/* Logo wrapper — layoutId matches Loader so Framer Motion grows it in */}
       <motion.div
-        layoutId="logo-container"
+        layoutId="telox-logo"
         className="relative z-10 cursor-pointer"
         animate={{
-          x: navOpen ? "-25vw" : "0vw",
-          scale: navOpen ? 0.6 : 1,
+          x: navOpen ? "-22vw" : "0vw",
+          scale: navOpen ? 0.55 : 1,
         }}
-        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+        transition={{ type: "spring", damping: 32, stiffness: 190 }}
         onClick={(e) => {
           e.stopPropagation();
           setNavOpen(!navOpen);
         }}
       >
-        <motion.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}>
-          <Logo3D size={120} reflect={!navOpen} />
+        <motion.div style={{ rotateX, rotateY, transformPerspective: 1400 }}>
+          <Logo3D size={220} reflect={!navOpen} rotationDuration={38} />
         </motion.div>
       </motion.div>
     </motion.div>
