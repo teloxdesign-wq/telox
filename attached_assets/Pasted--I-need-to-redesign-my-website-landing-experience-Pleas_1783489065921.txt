@@ -1,0 +1,34 @@
+"I need to redesign my website landing experience. Please build this using Three.js and React Three Fiber for the 3D logo, with Framer Motion for the UI transitions.
+
+1. Initial Loading State (The 'Preloader'):
+
+Create a centered 3D logo with 2% rounded corners on its geometry.
+
+Surround the logo with a circular progress bar animation that completes a full rotation (0 to 100%) in exactly 3 seconds.
+
+Once the progress reaches 100%, trigger a smooth transition: the logo should grow in size, and the view should seamlessly shift to the 'Home' state.
+
+2. Home Page State (Interactive):
+
+Logo Positioning: Once the landing page is active, transition the logo to the left side of the screen and scale it down to a smaller, secondary size.
+
+Cursor Reactivity: The logo must no longer just auto-rotate. It should now be reactive to the mouse cursor (use useFrame to interpolate the rotation based on mouse X/Y coordinates).
+
+Nav Interaction: Implement a global state (e.g., useState or Zustand) for a navigation menu. By default, the menu is hidden. When the user clicks anywhere on the black background or on the logo itself, the navigation menu should slide in from the right, and the logo should react accordingly (e.g., stay in its left position).
+
+Responsiveness: Ensure the entire setup is responsive to different screen sizes, maintaining the logo's position and the navigation layout.
+
+Technical Requirements:
+
+Use framer-motion for the UI slide-in animations.
+
+Use react-three/drei for easy camera and interaction handling.
+
+Ensure the 3D object has proper lighting and materials to maintain the clean, dark-mode aesthetic shown in the reference."
+
+Tips for Success:
+Asset Handling: Make sure your 3D model (the .glb or .gltf file) has appropriate vertex data to support the 2% corner rounding, or use a shader to soften the edges if the geometry is simple.
+
+State Management: If your project grows complex, I recommend using Zustand to manage the isLoaded and isNavOpen states, as it is much cleaner than prop-drilling in React.
+
+Cursor Tracking: To make the movement feel professional, use Lerp (Linear Interpolation) when mapping mouse coordinates to the logo's rotation. This prevents the movement from feeling "jittery" and gives it a smooth, premium feel.
