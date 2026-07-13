@@ -1,5 +1,10 @@
 import { useRef, useEffect, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
+import {
+  Environment,
+  Lightformer,
+  MeshTransmissionMaterial,
+} from "@react-three/drei";
 import * as THREE from "three";
 import { useTeloxStore } from "@/store";
 import { LogoErrorBoundary } from "./LogoErrorBoundary";
@@ -7,10 +12,7 @@ import { LogoErrorBoundary } from "./LogoErrorBoundary";
 function LogoMesh({ onLogoClick }: { onLogoClick: () => void }) {
   const groupRef = useRef<THREE.Group>(null!);
   const meshRef = useRef<THREE.Mesh>(null!);
-
-  // Single passive listener for normalized mouse coords
   const mouse = useRef({ x: 0, y: 0 });
-  // Accumulator for gentle floating motion (replaces drei <Float>)
   const floatPhase = useRef(0);
 
   useEffect(() => {
@@ -22,7 +24,7 @@ function LogoMesh({ onLogoClick }: { onLogoClick: () => void }) {
     return () => window.removeEventListener("pointermove", handleMove);
   }, []);
 
-  // Minimal faceted icosahedron — one clean professional geometric shape
+  // Low-poly icosahedron (20 faces) — minimal geometry for glass refraction
   const geometry = useMemo(() => new THREE.IcosahedronGeometry(1.4, 0), []);
 
   useFrame((_, delta) => {
@@ -33,7 +35,7 @@ function LogoMesh({ onLogoClick }: { onLogoClick: () => void }) {
     const dt = Math.min(delta, 1 / 30); // clamp for stability on slow frames
     floatPhase.current += dt;
 
-    // Continuous slow auto-rotation for life
+    // Slow auto-rotation for life
     mesh.rotation.y += dt * 0.35;
     mesh.rotation.x += dt * 0.12;
 
@@ -63,17 +65,21 @@ function LogoMesh({ onLogoClick }: { onLogoClick: () => void }) {
         onPointerOver={() => (document.body.style.cursor = "pointer")}
         onPointerOut={() => (document.body.style.cursor = "auto")}
       >
-        {/* Standard material: cheap, no transmission, no env-map cost */}
-        <meshStandardMaterial
-          color="#0a1840"
-          metalness={0.88}
-          roughness={0.28}
-          flatShading
+        {/* Glassmorphism material — restored, with reduced samples/resolution
+            for performance. Low-poly geometry keeps the transmission pass cheap. */}
+        <MeshTransmissionMaterial
+          transmission={1}
+          thickness={0.5}
+          roughness={0.12}
+          ior={1.2}
+          chromaticAberration={0.06}
+          backside={false}
+          samples={6}
+          resolution={256}
+          color="#1a3a6e"
+          attenuationColor="#2563eb"
+          attenuationDistance={0.8}
         />
-      </mesh>
-      {/* Subtle wireframe overlay for geometric definition */}
-      <mesh geometry={geometry} scale={1.005}>
-        <meshBasicMaterial color="#2563eb" wireframe transparent opacity={0.18} />
       </mesh>
     </group>
   );
@@ -92,10 +98,18 @@ export function TeloxCanvas() {
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         frameloop="always"
       >
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[4, 6, 5]} intensity={2.4} color="#ffffff" />
-        <directionalLight position={[-5, -3, -2]} intensity={0.8} color="#3b82f6" />
-        <pointLight position={[0, 0, 3]} intensity={1.2} color="#2563eb" distance={12} />
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[4, 6, 5]} intensity={1.5} color="#ffffff" />
+        <directionalLight position={[-5, -3, -2]} intensity={0.6} color="#3b82f6" />
+
+        {/* Custom environment for glass reflections — lightweight, no HDR loading */}
+        <Environment resolution={64}>
+          <Lightformer intensity={2} position={[0, 2, 4]} scale={[6, 1, 1]} />
+          <Lightformer intensity={1.5} position={[-3, 1, 2]} scale={[3, 1, 1]} />
+          <Lightformer intensity={1.5} position={[3, 1, 2]} scale={[3, 1, 1]} />
+          <Lightformer intensity={1} position={[0, -2, 2]} scale={[4, 1, 1]} />
+        </Environment>
+
         <LogoMesh onLogoClick={() => setNavOpen(true)} />
       </Canvas>
     </LogoErrorBoundary>
