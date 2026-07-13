@@ -1,4 +1,4 @@
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTeloxStore } from "./store";
 import { TeloxCanvas } from "./components/TeloxCanvas";
 import { BrandLogo } from "./components/BrandLogo";
@@ -9,7 +9,6 @@ import { NavOverlay } from "./pages/NavOverlay";
 import { About } from "./pages/About";
 import { Work } from "./pages/Work";
 import { Contact } from "./pages/Contact";
-import { motion } from "framer-motion";
 
 export function MainShell() {
   const phase = useTeloxStore((s) => s.phase);
@@ -18,18 +17,19 @@ export function MainShell() {
   const setView = useTeloxStore((s) => s.setView);
   const setNavOpen = useTeloxStore((s) => s.setNavOpen);
 
+  // Mount the Three.js canvas only during loader and home view.
+  // NOTE: r3f <Canvas> uses a separate React reconciler and must NOT be
+  // wrapped in <AnimatePresence> — doing so breaks its rendering and yields
+  // a blank screen. We mount/unmount it directly based on store state.
   const showCanvas = phase === "loading" || (phase === "home" && view === "home");
 
   return (
     <div className="w-full h-[100dvh] bg-black text-white overflow-hidden relative font-sans selection:bg-[#2563eb]/30">
-      {/* Persistent Three.js canvas — visible during loader and home */}
-      <AnimatePresence>{showCanvas && <TeloxCanvas key="r3f-canvas" />}</AnimatePresence>
+      {showCanvas && <TeloxCanvas />}
 
-      {/* Loader ring overlay */}
       <AnimatePresence>{phase === "loading" && <Loader key="loader" />}</AnimatePresence>
 
-      {/* Global brand logo — top-left, present on every page once home is reached.
-          Rendered at the shell level so it persists across view transitions. */}
+      {/* Global brand logo — top-left, present on every page once home is reached */}
       <AnimatePresence>
         {phase === "home" && (
           <div key="brand" className="absolute top-0 left-0 z-40 px-8 py-4">
@@ -38,18 +38,17 @@ export function MainShell() {
         )}
       </AnimatePresence>
 
-      {/* Top-right nav links — visible on sub-pages (not home, not loading) */}
+      {/* Top-right nav links — visible on sub-pages */}
       <AnimatePresence>
         {phase === "home" && view !== "home" && (
           <TopBar key="topbar" view={view} setView={setView} />
         )}
       </AnimatePresence>
 
-      {/* Page content — home is transparent (canvas shows through) */}
+      {/* Page content — home is transparent so the canvas shows through */}
       <AnimatePresence mode="wait">
         {phase === "home" && view === "home" && (
           <Home key="home">
-            {/* Click anywhere (when nav closed) opens the reverse-dissolve nav */}
             {!navOpen && (
               <motion.div
                 className="absolute inset-0 z-10 cursor-pointer"
@@ -69,9 +68,7 @@ export function MainShell() {
         {view === "contact" && phase === "home" && <Contact key="contact" />}
       </AnimatePresence>
 
-      {/* Navigation overlay — reverse-dissolve animation.
-          Rendered at shell level so it coexists with the 3D logo rather than
-          replacing page content; the soft backdrop dims the logo gracefully. */}
+      {/* Navigation overlay — reverse-dissolve animation */}
       <AnimatePresence>
         {navOpen && phase === "home" && (
           <NavOverlay

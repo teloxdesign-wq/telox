@@ -1,6 +1,5 @@
 import { useRef, useEffect, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
 import * as THREE from "three";
 import { useTeloxStore } from "@/store";
 import { LogoErrorBoundary } from "./LogoErrorBoundary";
@@ -11,6 +10,8 @@ function LogoMesh({ onLogoClick }: { onLogoClick: () => void }) {
 
   // Single passive listener for normalized mouse coords
   const mouse = useRef({ x: 0, y: 0 });
+  // Accumulator for gentle floating motion (replaces drei <Float>)
+  const floatPhase = useRef(0);
 
   useEffect(() => {
     const handleMove = (e: PointerEvent) => {
@@ -30,6 +31,7 @@ function LogoMesh({ onLogoClick }: { onLogoClick: () => void }) {
     if (!group || !mesh) return;
 
     const dt = Math.min(delta, 1 / 30); // clamp for stability on slow frames
+    floatPhase.current += dt;
 
     // Continuous slow auto-rotation for life
     mesh.rotation.y += dt * 0.35;
@@ -41,37 +43,39 @@ function LogoMesh({ onLogoClick }: { onLogoClick: () => void }) {
     const damp = 1 - Math.pow(0.0015, dt);
     group.rotation.y += (targetRotY - group.rotation.y) * damp;
     group.rotation.x += (targetRotX - group.rotation.x) * damp;
+
+    // Gentle floating motion (replaces drei <Float>)
+    group.position.y = Math.sin(floatPhase.current * 1.4) * 0.12;
+    group.position.x = Math.cos(floatPhase.current * 0.9) * 0.06;
   });
 
   return (
-    <Float speed={1.4} rotationIntensity={0.15} floatIntensity={0.35}>
-      <group
-        ref={groupRef}
-        onClick={(e) => {
-          e.stopPropagation();
-          onLogoClick();
-        }}
+    <group
+      ref={groupRef}
+      onClick={(e) => {
+        e.stopPropagation();
+        onLogoClick();
+      }}
+    >
+      <mesh
+        ref={meshRef}
+        geometry={geometry}
+        onPointerOver={() => (document.body.style.cursor = "pointer")}
+        onPointerOut={() => (document.body.style.cursor = "auto")}
       >
-        <mesh
-          ref={meshRef}
-          geometry={geometry}
-          onPointerOver={() => (document.body.style.cursor = "pointer")}
-          onPointerOut={() => (document.body.style.cursor = "auto")}
-        >
-          {/* Standard material: cheap, no transmission, no env-map cost */}
-          <meshStandardMaterial
-            color="#0a1840"
-            metalness={0.88}
-            roughness={0.28}
-            flatShading
-          />
-        </mesh>
-        {/* Subtle wireframe overlay for geometric definition */}
-        <mesh geometry={geometry} scale={1.005}>
-          <meshBasicMaterial color="#2563eb" wireframe transparent opacity={0.18} />
-        </mesh>
-      </group>
-    </Float>
+        {/* Standard material: cheap, no transmission, no env-map cost */}
+        <meshStandardMaterial
+          color="#0a1840"
+          metalness={0.88}
+          roughness={0.28}
+          flatShading
+        />
+      </mesh>
+      {/* Subtle wireframe overlay for geometric definition */}
+      <mesh geometry={geometry} scale={1.005}>
+        <meshBasicMaterial color="#2563eb" wireframe transparent opacity={0.18} />
+      </mesh>
+    </group>
   );
 }
 
@@ -82,7 +86,8 @@ export function TeloxCanvas() {
     <LogoErrorBoundary fallback={<div />}>
       <Canvas
         camera={{ position: [0, 0, 6], fov: 40 }}
-        className="z-0"
+        className="absolute inset-0"
+        style={{ pointerEvents: "auto" }}
         dpr={[1, 1.75]}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         frameloop="always"
