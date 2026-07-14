@@ -1,11 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useTeloxStore } from "./store";
-import { useSmoothScroll } from "./hooks/use-smooth-scroll";
-import { useTransition } from "./hooks/use-transition";
-import { ShaderBackground } from "./components/ShaderBackground";
-import { HeroScene } from "./components/HeroScene";
-import { CustomCursor } from "./components/CustomCursor";
-import { PageTransition } from "./components/PageTransition";
+import { TeloxCanvas } from "./components/TeloxCanvas";
 import { BrandLogo } from "./components/BrandLogo";
 import { TopBar } from "./components/TopBar";
 import { Loader } from "./pages/Loader";
@@ -22,43 +17,19 @@ export function MainShell() {
   const setView = useTeloxStore((s) => s.setView);
   const setNavOpen = useTeloxStore((s) => s.setNavOpen);
 
-  const { active: transitionActive, progressRef, trigger } = useTransition();
-
-  // Enable Lenis smooth scroll only on home view (sub-pages are fixed-height)
-  useSmoothScroll(phase === "home" && view === "home");
-
+  // Mount the Three.js canvas only during loader and home view.
+  // NOTE: r3f <Canvas> uses a separate React reconciler and must NOT be
+  // wrapped in <AnimatePresence> — doing so breaks its rendering and yields
+  // a blank screen. We mount/unmount it directly based on store state.
   const showCanvas = phase === "loading" || (phase === "home" && view === "home");
-
-  const handleNavigate = (v: typeof view) => {
-    if (v === view) {
-      setNavOpen(false);
-      return;
-    }
-    trigger(() => {
-      setView(v);
-      setNavOpen(false);
-    });
-  };
 
   return (
     <div className="w-full h-[100dvh] bg-black text-white overflow-hidden relative font-sans selection:bg-[#2563eb]/30">
-      {/* Atmospheric shader background — always present */}
-      <ShaderBackground />
+      {showCanvas && <TeloxCanvas />}
 
-      {/* Custom physics-based cursor */}
-      <CustomCursor />
+      <AnimatePresence>{phase === "loading" && <Loader key="loader" />}</AnimatePresence>
 
-      {/* Shader-based page transition overlay */}
-      <PageTransition active={transitionActive} progressRef={progressRef} />
-
-      {/* Hero 3D scene — mounted during loader and home view */}
-      {showCanvas && phase === "home" && <HeroScene />}
-
-      <AnimatePresence>
-        {phase === "loading" && <Loader key="loader" />}
-      </AnimatePresence>
-
-      {/* Global brand logo */}
+      {/* Global brand logo — top-left, present on every page once home is reached */}
       <AnimatePresence>
         {phase === "home" && (
           <div key="brand" className="absolute top-0 left-0 z-40 px-8 py-4">
@@ -70,11 +41,11 @@ export function MainShell() {
       {/* Top-right nav links — visible on sub-pages */}
       <AnimatePresence>
         {phase === "home" && view !== "home" && (
-          <TopBar key="topbar" view={view} setView={handleNavigate} />
+          <TopBar key="topbar" view={view} setView={setView} />
         )}
       </AnimatePresence>
 
-      {/* Page content */}
+      {/* Page content — home is transparent so the canvas shows through */}
       <AnimatePresence mode="wait">
         {phase === "home" && view === "home" && (
           <Home key="home">
@@ -92,17 +63,20 @@ export function MainShell() {
         )}
         {view === "about" && phase === "home" && <About key="about" />}
         {view === "work" && phase === "home" && (
-          <Work key="work" setView={handleNavigate} />
+          <Work key="work" setView={setView} />
         )}
         {view === "contact" && phase === "home" && <Contact key="contact" />}
       </AnimatePresence>
 
-      {/* Navigation overlay */}
+      {/* Navigation overlay — reverse-dissolve animation */}
       <AnimatePresence>
         {navOpen && phase === "home" && (
           <NavOverlay
             key="nav-overlay"
-            setView={handleNavigate}
+            setView={(v) => {
+              setView(v);
+              setNavOpen(false);
+            }}
             setNavOpen={setNavOpen}
           />
         )}

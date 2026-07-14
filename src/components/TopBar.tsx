@@ -31,12 +31,8 @@ export function TopBar({ view, setView }: TopBarProps) {
             view === link.view && "opacity-100 font-normal"
           )}
           onClick={() => setView(link.view)}
-          whileHover={{
-            scale: 1.08,
-            transition: { type: "spring", stiffness: 400, damping: 20 },
-          }}
+          whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
-          data-cursor="link"
         >
           {link.name}
         </motion.button>
