@@ -23,7 +23,6 @@ export function NavOverlay({ setView, setNavOpen }: NavOverlayProps) {
       transition={{ duration: 0.4, ease: "easeInOut" }}
       onClick={() => setNavOpen(false)}
     >
-      {/* Soft backdrop that coexists with the 3D logo (no full opaque fill) */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
 
       <motion.div
@@ -38,8 +37,8 @@ export function NavOverlay({ setView, setNavOpen }: NavOverlayProps) {
               setView(link.view);
               setNavOpen(false);
             }}
-            /* Reverse dissolve: starts diffuse + scaled + blurred, resolves
-               into a crisp, settled state. Staggered per link. */
+            data-cursor="link"
+            data-cursor-label="Open"
             initial={{
               opacity: 0,
               scale: 1.18,
@@ -68,7 +67,11 @@ export function NavOverlay({ setView, setNavOpen }: NavOverlayProps) {
                 delay: 0.04 * i,
               },
             }}
-            whileHover={{ scale: 1.06, opacity: 1 }}
+            whileHover={{
+              scale: 1.06,
+              opacity: 1,
+              transition: { type: "spring", stiffness: 400, damping: 20 },
+            }}
             whileTap={{ scale: 0.96 }}
           >
             {link.name}

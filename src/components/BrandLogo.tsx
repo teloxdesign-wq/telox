@@ -32,6 +32,7 @@ export function BrandLogo({ className }: { className?: string }) {
       transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      data-cursor="link"
     >
       <CubeMark />
       <span className="text-white font-sans text-lg font-bold tracking-tight">
