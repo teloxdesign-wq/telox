@@ -11,10 +11,12 @@ import { cn } from "@/lib/utils";
 export function BrandLogo({ className }: { className?: string }) {
   const setView = useTeloxStore((s) => s.setView);
   const setNavOpen = useTeloxStore((s) => s.setNavOpen);
+  const setActiveMode = useTeloxStore((s) => s.setActiveMode);
 
   const goHome = () => {
     setView("home");
     setNavOpen(false);
+    setActiveMode(false);
   };
 
   return (
