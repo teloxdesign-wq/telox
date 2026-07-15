@@ -3,7 +3,6 @@ import { useTeloxStore } from "./store";
 import { TeloxCanvas } from "./components/TeloxCanvas";
 import { BrandLogo } from "./components/BrandLogo";
 import { TopBar } from "./components/TopBar";
-import { AgencyIdentity } from "./components/AgencyIdentity";
 import { Loader } from "./pages/Loader";
 import { Home } from "./pages/Home";
 import { NavOverlay } from "./pages/NavOverlay";
@@ -15,12 +14,13 @@ export function MainShell() {
   const phase = useTeloxStore((s) => s.phase);
   const view = useTeloxStore((s) => s.view);
   const navOpen = useTeloxStore((s) => s.navOpen);
-  const activeMode = useTeloxStore((s) => s.activeMode);
   const setView = useTeloxStore((s) => s.setView);
   const setNavOpen = useTeloxStore((s) => s.setNavOpen);
-  const setActiveMode = useTeloxStore((s) => s.setActiveMode);
 
-  // Keep canvas mounted during loading, home view, and active mode
+  // Mount the Three.js canvas only during loader and home view.
+  // NOTE: r3f <Canvas> uses a separate React reconciler and must NOT be
+  // wrapped in <AnimatePresence> — doing so breaks its rendering and yields
+  // a blank screen. We mount/unmount it directly based on store state.
   const showCanvas = phase === "loading" || (phase === "home" && view === "home");
 
   return (
@@ -45,32 +45,11 @@ export function MainShell() {
         )}
       </AnimatePresence>
 
-      {/* Interactive hint on home screen */}
-      <AnimatePresence>
-        {phase === "home" && view === "home" && !navOpen && !activeMode && (
-          <motion.div
-            key="hint"
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 1, duration: 0.8 }}
-          >
-            <span className="text-[11px] font-sans uppercase tracking-[0.3em] text-white/30">
-              Click the object to explore
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Agency identity panel — fades in on right when activeMode is on */}
-      <AgencyIdentity />
-
       {/* Page content — home is transparent so the canvas shows through */}
       <AnimatePresence mode="wait">
         {phase === "home" && view === "home" && (
           <Home key="home">
-            {!navOpen && !activeMode && (
+            {!navOpen && (
               <motion.div
                 className="absolute inset-0 z-10 cursor-pointer"
                 onClick={() => setNavOpen(true)}
@@ -97,7 +76,6 @@ export function MainShell() {
             setView={(v) => {
               setView(v);
               setNavOpen(false);
-              setActiveMode(false);
             }}
             setNavOpen={setNavOpen}
           />
