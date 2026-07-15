@@ -89,7 +89,16 @@ export function TeloxCanvas() {
         className="absolute inset-0"
         style={{ pointerEvents: "auto" }}
         dpr={[1, 1.75]}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: "high-performance",
+        }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(new THREE.Color("#000000"), 1.0);
+          gl.outputColorSpace = THREE.SRGBColorSpace;
+          gl.toneMapping = THREE.NoToneMapping;
+        }}
         frameloop="always"
       >
         <ambientLight intensity={0.7} />
